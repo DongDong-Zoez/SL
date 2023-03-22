@@ -7,3 +7,9 @@ In this project, we are generating random variable from scratch, i.e., the only 
 In this work, we have implement cholesky decomposition to simulate random multivariate vectors from scratch
 
 Furthermore, we have also implement copula to simulate exponential random vectors under specifies copula structure
+
+## HW5 
+
+In this work, we have implement bootstrap sampling from scratch, include parametric bootstrap and non-parametric bootstrap
+
+We also demo some simple example for how to use the function
