@@ -12,4 +12,8 @@ Furthermore, we have also implement copula to simulate exponential random vector
 
 In this work, we have implement bootstrap sampling from scratch, include parametric bootstrap and non-parametric bootstrap
 
-We also demo some simple example for how to use the function
+We also demo some simple example for how to use the function.
+
+## HW6
+
+In this work, we have implement KS test for approximate p value test the data came from a specify distribution or not.
