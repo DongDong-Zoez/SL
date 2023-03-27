@@ -17,3 +17,12 @@ We also demo some simple example for how to use the function.
 ## HW6
 
 In this work, we have implement KS test for approximate p value test the data came from a specify distribution or not.
+
+## Usage
+
+system: Ubuntu 20.04 
+ 
+```sh
+cd SL
+source script.sh
+```
