@@ -24,5 +24,6 @@ system: Ubuntu 20.04
  
 ```sh
 cd SL
-source script.sh
+chmod +x script.sh
+./script.sh #source script.sh
 ```
