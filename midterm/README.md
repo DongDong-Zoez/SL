@@ -508,7 +508,8 @@ p_value = np.mean(boot_stats >= observed_stat)
 
 ```python
 Observed KS statistic: 0.31788755799247936
-Bootstrap p-value: 0.8211
+Booststrap KS statistic: 0.26896617302888765
+Bootstrap p-value: 0.2425
 ```
 
 The p-value of the test > 0.05 --> Do not reject --> We don't have any significant evidence that the data are not from Bin(8,p)
