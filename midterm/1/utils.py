@@ -1,13 +1,17 @@
 import numpy as np
-import random 
+from scipy.special import gamma
+import random
+
 
 def seed_everything():
     np.random.seed(311657007)
     random.seed(311657007)
 
+
 def trimmed_mean(x, trim_pct=0.2):
     n_trim = int(np.ceil(len(x) * trim_pct))
     return np.mean(x[n_trim:-n_trim])
+
 
 def box_muller_transform(u1, u2):
     """
@@ -27,6 +31,7 @@ def box_muller_transform(u1, u2):
     z1 = np.sqrt(-2 * np.log(u1)) * np.cos(2 * np.pi * u2)
     z2 = np.sqrt(-2 * np.log(u1)) * np.sin(2 * np.pi * u2)
     return z1, z2
+
 
 def generate_multinormal_uniform(mean, cov, size=1):
     """
@@ -49,7 +54,8 @@ def generate_multinormal_uniform(mean, cov, size=1):
     u = np.random.uniform(size=(2, size * n))
 
     # Generate standard normal random variables using Box-Muller transform
-    z = np.array([np.apply_along_axis(box_muller_transform, 0, u[0], u[1])]).reshape(n, -1)
+    z = np.array([np.apply_along_axis(
+        box_muller_transform, 0, u[0], u[1])]).reshape(n, -1)
 
     # Multiply Cholesky decomposition by standard normal random variables
     x = np.dot(L, z)
@@ -59,13 +65,19 @@ def generate_multinormal_uniform(mean, cov, size=1):
 
     return x.T
 
+
 def accept_rejection_algorithm_hook(pdf, *args, **kwargs):
+    print(args, kwargs)
+    try:
+        dims = kwargs["dims"]
+    except:
+        dims = 1
+    print(dims)
     def ar_algorithm(M):
         while True:
-            x = random.uniform(0, 1)
-            y = random.uniform(0, 1)
+            x = np.random.uniform(0, 1, dims)
+            y = np.random.uniform(0, 1, dims)
             if y*M <= pdf(x):
-
                 return x
     def wrapper(*args, **kwargs):
         try: 
@@ -77,9 +89,15 @@ def accept_rejection_algorithm_hook(pdf, *args, **kwargs):
         return smpls
     return wrapper
 
+def dirichlet(x, alpha=np.array([2,3,4])):
+    alpha_sum = sum(alpha)
+    alphas = gamma(alpha)
+    alphas = np.prod(alphas)
+    return np.prod(x ** (alpha - 1)) * gamma(alpha_sum) / alphas
+
 # @accept_rejection_algorithm_hook
 # def pdf(x, *args, **kwargs):
 #     return x + 0.5
-# samples = pdf(M=1.5, num_smpls=10000)
+# samples = pdf(M=5, num_smpls=10000)
 # plt.hist(samples, density=True)
 # plt.savefig("result.jpg")

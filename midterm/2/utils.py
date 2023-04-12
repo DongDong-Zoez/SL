@@ -5,10 +5,6 @@ def seed_everything():
     np.random.seed(311657007)
     random.seed(311657007)
 
-def trimmed_mean(x, trim_pct=0.2):
-    n_trim = int(np.ceil(len(x) * trim_pct))
-    return np.mean(x[n_trim:-n_trim])
-
 def box_muller_transform(u1, u2):
     """
     Generate n samples from a standard normal distribution
@@ -58,28 +54,3 @@ def generate_multinormal_uniform(mean, cov, size=1):
     x = x + mean[:, None]
 
     return x.T
-
-def accept_rejection_algorithm_hook(pdf, *args, **kwargs):
-    def ar_algorithm(M):
-        while True:
-            x = random.uniform(0, 1)
-            y = random.uniform(0, 1)
-            if y*M <= pdf(x):
-
-                return x
-    def wrapper(*args, **kwargs):
-        try: 
-            M = kwargs["M"]
-            num_smpls = kwargs["num_smpls"]
-        except:
-            raise KeyError("Miss keyword arguments, have you set M or num_smpls??")
-        smpls = list(map(ar_algorithm, [M for _ in range(num_smpls)]))
-        return smpls
-    return wrapper
-
-# @accept_rejection_algorithm_hook
-# def pdf(x, *args, **kwargs):
-#     return x + 0.5
-# samples = pdf(M=1.5, num_smpls=10000)
-# plt.hist(samples, density=True)
-# plt.savefig("result.jpg")
