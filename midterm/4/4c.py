@@ -18,7 +18,6 @@ def ks_statistic(data, p=p_vals):
 
 # Compute Kolmogorov-Smirnov statistic for each bootstrap sample
 boot_stats = np.apply_along_axis(ks_statistic, axis=1, arr=boot_samples)
-print(boot_stats)
 # Compute p-value
 observed_stat = ks_statistic(original_data)
 p_value = np.mean(boot_stats >= observed_stat)
