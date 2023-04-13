@@ -5,9 +5,8 @@ from scipy.stats import binom
 n_samples = int(1e4)
 original_data = np.array([6, 7, 3, 4, 7, 3, 7, 2, 6, 3, 7, 8, 2, 1, 3, 5, 8, 7])
 p_vals = np.mean(original_data) / 8
-boot_samples = np.random.choice(original_data, size=(len(original_data), n_samples), replace=True)
-
-boot_samples = np.random.binomial(8,p_vals,18*n_samples).reshape(10000,18)
+# boot_samples = np.random.choice(original_data, size=(len(original_data), n_samples), replace=True)
+boot_samples = np.random.binomial(8,p_vals,18*n_samples).reshape(n_samples,-1)
 
 def ks_statistic(data, p=p_vals):
     x = np.sort(data)
