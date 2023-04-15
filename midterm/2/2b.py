@@ -30,7 +30,7 @@ print("Samples Covariance Matrix:", np.cov(samples.T))
 
 # Plot rank plot
 fig, ax = plt.subplots()
-ax.plot(np.argsort(X).argsort(), np.argsort(Y).argsort(), "o")
+ax.plot(np.argsort(X).argsort(), np.argsort(Y).argsort(), "o", markerfacecolor='none')
 ax.set_xlabel('Rank of X')
 ax.set_ylabel('Rank of Y')
 ax.set_title('Rank Plot')

@@ -28,9 +28,13 @@ An array of shape (d)
 ### 1(b)
 
 ```python
-def compute_M(alpha):
-    M = gamma(sum(alpha)) / np.prod(gamma(alpha))
-    return M
+def compute_M(grid):
+    res = np.apply_along_axis(lambda x: dirichlet(x), 1, grid)
+    return max(res)
+
+grid = np.random.uniform(0,1,3*10000).reshape(10000,3)
+grid = np.apply_along_axis(lambda x: x / x.sum(), 1, grid)
+M = compute_M(grid)
 
 def accept_rejection_algorithm(pdf, M, dims=3):
     while True:
@@ -41,7 +45,7 @@ def accept_rejection_algorithm(pdf, M, dims=3):
             return x
 ```
 
-We compute the upper bound M is 3360, then samples 10^4 points.
+We compute the upper bound M is 7.77..., then samples 10^4 points.
 
 #### Histogram
 

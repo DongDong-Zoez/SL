@@ -72,7 +72,7 @@ print("Samples Covariance Matrix:", np.cov(smpls.T))
 
 for i in range(smpls.shape[1]):
     plt.figure()
-    plt.hist(smpls[:,i], bins=10, edgecolor='black')
+    plt.hist(smpls[:,i], bins=50, edgecolor='black')
     plt.xlabel('X')
     plt.ylabel('Frequency')
     plt.savefig(f"assets/1d_x{i}.jpg")
