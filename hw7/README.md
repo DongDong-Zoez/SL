@@ -30,24 +30,15 @@ class VarianceReduction:
         return target + c * (proposal - mu)
     
     def __condition(self, target, proposal):
-        assert target.shape == proposal.shape
-        # num_smpls = target.shape[0]
-        smpl_size = target.shape[1]
-        # prob_proposal = np.zeros((smpl_size, smpl_size))
-        # cond_target = np.zeros((smpl_size, smpl_size))
-        for i in range(smpl_size):
-            for j in range(i+1):
-                # mask = (proposal[:,i] == j)
-                # cond_target[i,j] += np.mean(target[mask, i])
-                # prob_proposal[i,j] += np.mean(proposal[:, i] == j)
-
-                mask = (proposal[:, i] == j)
-                target[mask, i] = np.mean(target[mask, i])
-        # print(target)
-        # for i in range(num_smpls):
-        #     for j in range(smpl_size):
-        #         target[i, j] = cond_target[i,j] * prob_proposal[j, proposal[i, j]]
-        return target.sum(axis=1)
+        # assert target.shape == proposal.shape
+        # smpl_size = target.shape[1]
+        # for i in range(smpl_size):
+        #     for j in range(i+1):
+                
+                # mask = (proposal[:, i] == j)
+                # target[mask, i] = np.mean(target[mask, i])
+        # return target.sum(axis=1)
+        return proposal.sum(axis=1)
 
     def preprocessor(self, func):
         if self.method == "antithetic":
@@ -114,7 +105,7 @@ class qSystem(VarianceReduction):
         self.system = {
             "arrival_times":  [],
             "service_times":  [],
-            "num_customers_in_system": [],
+            "N": [],
             "queueing_times": [],
             "starting_times": [],
             "ending_times": [],
@@ -137,10 +128,10 @@ class qSystem(VarianceReduction):
         interarrival_times = self.preprocessor(qSystem.generate_arrival_time())(self.rand)
         service_times = self.preprocessor(qSystem.generate_service_time())(self.rand)
 
-        num_customers_in_system = -1
+        N = -1
         temp = []
         for interarrival_time, service_time in zip(interarrival_times, service_times):
-            num_customers_in_system += 1
+            N += 1
             self.clock.walk(interarrival_time)
 
             arrival_time = self.clock.t
@@ -149,7 +140,7 @@ class qSystem(VarianceReduction):
             temp.append(service_end_time)
             for i in range(len(temp)):
                 if arrival_time > temp[i]:       
-                    num_customers_in_system -= 1
+                    N -= 1
                 else:
                     temp = temp[i:]
                     break
@@ -160,15 +151,15 @@ class qSystem(VarianceReduction):
 
             
 
-            self.recordEvent(arrival_time, service_time, num_customers_in_system, service_start_time,
+            self.recordEvent(arrival_time, service_time, N, service_start_time,
                              service_end_time, queueing_time, spending_time)
             
         self.customers_in_system = self.system
 
-    def recordEvent(self, arrival_time, service_time, num_customers_in_system, service_start_time, service_end_time, queueing_time, spending_time):
+    def recordEvent(self, arrival_time, service_time, N, service_start_time, service_end_time, queueing_time, spending_time):
         self.system["arrival_times"].append(arrival_time)
         self.system["service_times"].append(service_time)
-        self.system["num_customers_in_system"].append(num_customers_in_system)
+        self.system["N"].append(N)
         self.system["starting_times"].append(service_start_time)
         self.system["ending_times"].append(service_end_time)
         self.system["queueing_times"].append(queueing_time)
@@ -248,16 +239,16 @@ We then simulate 10000 samples with sample size 10 (10 customers) to construct t
 
 The result is shown as following:
 
-| Sum                     | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+| Sum                     | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |-------------------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 | arrival_times           | 27.43         | 9.98          | 27.09                   | 24.85          | 52.29          | 62.27        | 34.83          |
 
 
-| Covariance              | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+| Covariance              | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |-------------------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 | arrival_times           | 95.22         | 27.25         | 22.08                   | 100.41         | 195.63         | 222.88       | 127.66         |
 | service_times           | 27.25         | 9.94          | -0.14                   | 24.61          | 51.86          | 61.8         | 34.55          |
-| num_customers_in_system | 22.08         | -0.14         | 60.02                   | 47.86          | 69.94          | 69.81        | 47.72          |
+| N | 22.08         | -0.14         | 60.02                   | 47.86          | 69.94          | 69.81        | 47.72          |
 | queueing_times          | 100.41        | 24.61         | 47.86                   | 125.14         | 225.55         | 250.15       | 149.74         |
 | starting_times          | 195.63        | 51.86         | 69.94                   | 225.55         | 421.18         | 473.04       | 277.4          |
 | ending_times            | 222.88        | 61.8          | 69.81                   | 250.15         | 473.04         | 534.83       | 311.95         |
@@ -279,15 +270,15 @@ q.pretty_print(q.cov)
 The result is shown as following:
 
 |---------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
-|      Sum      | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|      Sum      | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |---------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 | arrival_times |     27.47     |      9.99     |          26.91          |     22.64      |     50.11      |     60.1     |     32.63      |
 
-|        Covariance       | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|        Covariance       | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |-------------------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 |      arrival_times      |     17.05     |      4.84     |           4.8           |     17.61      |     34.65      |    39.49     |     22.45      |
 |      service_times      |      4.84     |      1.76     |          -0.04          |      4.18      |      9.02      |    10.78     |      5.94      |
-| num_customers_in_system |      4.8      |     -0.04     |          15.36          |     11.86      |     16.66      |    16.61     |     11.81      |
+| N |      4.8      |     -0.04     |          15.36          |     11.86      |     16.66      |    16.61     |     11.81      |
 |      queueing_times     |     17.61     |      4.18     |          11.86          |     22.44      |     40.05      |    44.23     |     26.62      |
 |      starting_times     |     34.65     |      9.02     |          16.66          |     40.05      |      74.7      |    83.72     |     49.07      |
 |       ending_times      |     39.49     |     10.78     |          16.61          |     44.23      |     83.72      |     94.5     |     55.01      |
@@ -312,16 +303,16 @@ q.pretty_print(q.cov)
 The result is shown as following:
 
 
-|      Sum      | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|      Sum      | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |---------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 | arrival_times |     27.43     |      9.98     |          27.09          |     24.85      |     52.29      |    62.27     |     34.83      |
 
 
-|        Covariance       | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|        Covariance       | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |-------------------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 |      arrival_times      |     95.22     |     27.25     |          22.08          |     100.41     |     195.63     |    222.88    |     32.98      |
 |      service_times      |     27.25     |      9.94     |          -0.14          |     24.61      |     51.86      |     61.8     |      -0.0      |
-| num_customers_in_system |     22.08     |     -0.14     |          60.02          |     47.86      |     69.94      |    69.81     |      48.2      |
+| N |     22.08     |     -0.14     |          60.02          |     47.86      |     69.94      |    69.81     |      48.2      |
 |      queueing_times     |     100.41    |     24.61     |          47.86          |     125.14     |     225.55     |    250.15    |     64.24      |
 |      starting_times     |     195.63    |     51.86     |          69.94          |     225.55     |     421.18     |    473.04    |     97.22      |
 |       ending_times      |     222.88    |      61.8     |          69.81          |     250.15     |     473.04     |    534.83    |     97.22      |
@@ -346,15 +337,15 @@ q.pretty_print(q.cov)
 
 The result is shown as following:
 
-|      Sum      | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|      Sum      | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |---------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 | arrival_times |     27.43     |      9.98     |          27.09          |     24.85      |     52.29      |    62.27     |     34.83      |
 
-|        Covariance       | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|        Covariance       | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |-------------------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 |      arrival_times      |     95.22     |     27.25     |          22.08          |     100.41     |     195.63     |    222.88    |     20.87      |
 |      service_times      |     27.25     |      9.94     |          -0.14          |     24.61      |     51.86      |     61.8     |     -1.72      |
-| num_customers_in_system |     22.08     |     -0.14     |          60.02          |     47.86      |     69.94      |    69.81     |     30.45      |
+| N |     22.08     |     -0.14     |          60.02          |     47.86      |     69.94      |    69.81     |     30.45      |
 |      queueing_times     |     100.41    |     24.61     |          47.86          |     125.14     |     225.55     |    250.15    |      43.9      |
 |      starting_times     |     195.63    |     51.86     |          69.94          |     225.55     |     421.18     |    473.04    |     64.77      |
 |       ending_times      |     222.88    |      61.8     |          69.81          |     250.15     |     473.04     |    534.83    |     63.05      |
@@ -367,7 +358,7 @@ To simulate the queueing system with condition on N, we can write
 ```python
 def postprocessor(system):
 
-    N = system["num_customers_in_system"]
+    N = system["N"] + 1
     T = system["spending_times"]
 
     return T,N
@@ -381,15 +372,15 @@ q.pretty_print(q.cov)
 
 The result is shown as following:
 
-|      Sum      | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|      Sum      | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |---------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 | arrival_times |     27.43     |      9.98     |          27.09          |     24.85      |     52.29      |    62.27     |     37.09      |
 
-|        Covariance       | arrival_times | service_times | num_customers_in_system | queueing_times | starting_times | ending_times | spending_times |
+|        Covariance       | arrival_times | service_times | N | queueing_times | starting_times | ending_times | spending_times |
 |-------------------------|---------------|---------------|-------------------------|----------------|----------------|--------------|----------------|
 |      arrival_times      |     95.22     |     27.25     |          22.08          |     100.41     |     195.63     |    222.88    |     22.08      |
 |      service_times      |     27.25     |      9.94     |          -0.14          |     24.61      |     51.86      |     61.8     |     -0.14      |
-| num_customers_in_system |     22.08     |     -0.14     |          60.02          |     47.86      |     69.94      |    69.81     |     60.02      |
+| N |     22.08     |     -0.14     |          60.02          |     47.86      |     69.94      |    69.81     |     60.02      |
 |      queueing_times     |     100.41    |     24.61     |          47.86          |     125.14     |     225.55     |    250.15    |     47.86      |
 |      starting_times     |     195.63    |     51.86     |          69.94          |     225.55     |     421.18     |    473.04    |     69.94      |
 |       ending_times      |     222.88    |      61.8     |          69.81          |     250.15     |     473.04     |    534.83    |     69.81      |
